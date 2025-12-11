@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMIYA - 聽見你自己</title>
+    <style>
+        /* --- 基礎樣式 --- */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f9; /* 柔和背景色 */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #6a1b9a; /* LUMIYA 紫色 */
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        /* --- 區塊樣式 --- */
+        .section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #444;
+        }
+
+        /* --- 1. Emoji 按鈕區 --- */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .emoji-btn {
+            font-size: 2rem;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 10px;
+            transition: all 0.2s;
+        }
+
+        .emoji-btn:hover {
+            background: #e2e6ea;
+            transform: translateY(-2px);
+            border-color: #6a1b9a;
+        }
+
+        /* --- 2. 日記輸入區 --- */
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            resize: none;
+            box-sizing: border-box; 
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .submit-btn {
+            background-color: #6a1b9a;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #4a148c;
+        }
+
+        /* --- 3. 結果展示卡片 (預設隱藏) --- */
+        #result-card {
+            display: none; /* JS 會控制顯示 */
+            background: #fafafa;
+            border-left: 5px solid #6a1b9a;
+            padding: 15px;
+            border-radius: 5px;
+            animation: fadeIn 0.5s;
+            margin-top: 20px;
+        }
+
+        .song-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .cover-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #ddd;
+            border-radius: 8px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .song-details h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .song-details p {
+            margin: 5px 0 0;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .ai-story {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 15px;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .ai-story::before {
+            content: "✨ LUMIYA 旁白";
+            display: block;
+            font-size: 0.8rem;
+            color: #6a1b9a;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .spotify-link {
+            display: block;
+            text-align: center;
+            background: #1DB954; /* Spotify Green */
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .spotify-link:hover {
+            transform: scale(1.02);
+            background: #1ed760;
+        }
+
+        /* --- 載入中動畫 --- */
+        .loading {
+            text-align: center;
+            color: #666;
+            display: none;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6a1b9a;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>LUMIYA</h1>
+        <p class="subtitle">聽見你自己：你的智慧音樂情感伴侶</p>
+
+        <div class="section">
+            <h2>你在想什麼？</h2>
+            <div class="emoji-grid">
+                <button class="emoji-btn" onclick="sendEmoji('😊')">😊</button>
+                <button class="emoji-btn" onclick="sendEmoji('😢')">😢</button>
+                <button class="emoji-btn" onclick="sendEmoji('⚡')">⚡</button>
+                <button class="emoji-btn" onclick="sendEmoji('🧘')">🧘</button>
+                <button class="emoji-btn" onclick="sendEmoji('😡')">😡</button>
+                <button class="emoji-btn" onclick="sendEmoji('🥰')">🥰</button>
+                <button class="emoji-btn" onclick="sendEmoji('😴')">😴</button>
+                <button class="emoji-btn" onclick="sendEmoji('🥳')">🥳</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>或是寫下你的心情...</h2>
+            <textarea id="diaryInput" placeholder="今天發生了什麼事？寫下來，LUMIYA 會幫你分析並記錄..."></textarea>
+            <button class="submit-btn" onclick="sendDiary()">生成日記推薦並儲存</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>LUMIYA 正在讀懂你的心，並翻閱唱片櫃...</p>
+        </div>
+
+        <div id="result-card">
+            <div class="song-info">
+                <div class="cover-placeholder" id="album-cover">封面</div> 
+                <div class="song-details">
+                    <h3 id="track-name">歌曲名稱</h3>
+                    <p id="artist-name">歌手名稱</p>
+                </div>
+            </div>
+
+            <div class="ai-story" id="ai-narration">
+                </div>
+
+            <a href="#" target="_blank" class="spotify-link" id="spotify-btn">在 Spotify 上聆聽</a>
+        </div>
+    </div>
+
+    <script>
+        // --- 功能 1: 發送 Emoji ---
+        async function sendEmoji(emoji) {
+            showLoading();
+            console.log("正在發送 Emoji 給後端:", emoji);
+
+            try {
+                const response = await fetch('/api/recommend_by_emoji', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emoji: emoji }),
+                });
+
+                if (!response.ok) throw new Error('API 回應錯誤');
+
+                const data = await response.json();
+                displayResult(data);
+
+            } catch (error) {
+                console.error("錯誤:", error);
+                alert("連線發生問題，請檢查後端是否啟動。");
+                hideLoading();
+            }
+        }
+
+        // --- 功能 2: 發送心情日記 ---
+        async function sendDiary() {
+            const text = document.getElementById('diaryInput').value;
+            if(!text) return alert("請先寫下一點心情喔！");
+
+            showLoading();
+            console.log("使用者輸入日記:", text);
+
+            try {
+                const response = await fetch('/api/analyze_diary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text }),
+                });
+
+                if (!response.ok) throw new Error('API 回應錯誤');
+
+                const data = await response.json();
+                console.log("收到日記推薦:", data);
+                
+                // 顯示結果
+                displayResult(data);
+                
+                // 清空輸入框
+                document.getElementById('diaryInput').value = '';
+
+            } catch (error) {
+                console.error("錯誤:", error);
+                alert("LUMIYA 正在休息 (分析失敗)，請稍後再試。");
+                hideLoading();
+            }
+        }
+
+        // --- UI 輔助函式 ---
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result-card').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function displayResult(data) {
+            hideLoading();
+            const card = document.getElementById('result-card');
+            card.style.display = 'block';
+            
+            // 更新文字內容
+            document.getElementById('track-name').innerText = data.track_name;
+            document.getElementById('artist-name').innerText = data.artist_name;
+            document.getElementById('ai-narration').innerText = data.story;
+            
+            // 更新 Spotify 連結
+            const spotifyBtn = document.getElementById('spotify-btn');
+            if (data.spotify_url) {
+                spotifyBtn.href = data.spotify_url;
+                spotifyBtn.style.display = 'block'; // 確保按鈕顯示
+            } else {
+                spotifyBtn.style.display = 'none'; // 如果沒連結就藏起來
+            }
+
+            // 更新封面圖
+            const coverDiv = document.getElementById('album-cover');
+            if (data.cover_url) {
+                coverDiv.style.backgroundImage = `url('${data.cover_url}')`;
+                coverDiv.style.backgroundSize = 'cover';
+                coverDiv.innerText = ''; 
+            } else {
+                coverDiv.style.background = '#ddd';
+                coverDiv.innerText = '無封面';
+            }
+            
+            // 滾動到結果區塊 (手機體驗較好)
+            card.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

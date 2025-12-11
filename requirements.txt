@@ -1,0 +1,4 @@
+Flask
+spotipy
+groq
+flask_cors
